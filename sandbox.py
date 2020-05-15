@@ -1,5 +1,3 @@
-# coding=utf-8
-
 import os
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
@@ -7,9 +5,30 @@ from datetime import date
 import sqlalchemy
 import mysql.connector
 
+# import config
+
+# def gen_connection_string():
+#     # if not on Google then use local MySQL
+#     # if not os.getenv('SERVER_SOFTWARE', '').startswith('Google App Engine/'):
+#     #     return 'mysql://root@localhost/blog'
+#     # else:
+#     # conn_name = 'omega-pattern-242522:europe-west1:sqp-mysql'
+#     conn_name = 'omega-pattern-242522:europe-west1:sqp-mysql'
+#     sql_user = 'janusz'
+#     sql_pass = 'Valhala90'
+#     conn_template = 'mysql+pymysql://%s:%s@/sheriff_db?unix_socket=/cloudsql/%s'
+#     return conn_template % (sql_user, sql_pass, conn_name)
+#
+#mysql://doadmin:qxw7gzta4gfy1ibd@sqp-database-cluster-do-user-7469152-0.a.db.ondigitalocean.com:25060/defaultdb?ssl-mode=REQUIRED
 app = Flask(__name__)
 app.config.from_pyfile('config.cfg')
+# app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+# app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://janusz:vx1fqct7bha37y2l@sqp-database-cluster-do-user-7469152-0.a.db.ondigitalocean.com:25060/sheriff-db?charset=utf8mb4'
 db = SQLAlchemy(app)
+
+
+# class Test(db.Model):
+#     id = db.Column(db.Integer, primary_key=True)
 
 
 class User(db.Model):
@@ -75,3 +94,35 @@ class Shot(db.Model):
 
     def __repr__(self):
         return '<Name: %r>' % self.name
+#
+#
+#
+
+# show_TEST = Show(title='TEST', short='TST', resolution='2048x1536', fps='24', colorspace='ACES', start_date=date.today(), clickup_space_id = '2597557')
+# show_SKYSCR = Show(title='SKYSCRAPER_TEASER', short='SKYSCR', resolution='1920x817', fps='25', colorspace='Linear RGB',
+#                    start_date=date(2020, 4, 19), clickup_space_id = '2668736')
+
+
+
+current_show = 'SKYSCRAPER_TEASER'
+
+#
+show = Show.query.filter(Show.title == current_show).first()
+res = show.resolution
+fps = show.fps
+#
+# new_shot = Shot(name='0020', resolution = res, fps = fps, start_frame = '1001', end_frame = '1075',
+#                 clickup_task_id = '54n2c2', clickup_list_id = '19408057', show_id=show.id)
+# #
+shots = Shot.query.filter(Shot.show_id==show.id)
+for shot in shots:
+    print(shot.name)
+
+# db.create_all()
+#
+
+# db.session.add(show_TEST)
+# db.session.add(new_shot)
+# db.session.commit()
+# if __name__ == '__main__':
+#     app.run()
