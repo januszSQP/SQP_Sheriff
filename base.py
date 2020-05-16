@@ -19,6 +19,9 @@ class User(db.Model):
     icon = db.Column('icon', db.String(60))
     permissions = db.Column('permissions', db.Integer)
 
+    tasks = db.relationship('Task', backref='User', lazy='dynamic')
+    comments = db.relationship('Comment', backref='User', lazy='dynamic')
+
     def __repr__(self):
         return '<User: %r>' % self.username
 
@@ -72,6 +75,56 @@ class Shot(db.Model):
     show_id = db.Column('show_id', db.ForeignKey('Show.id'))
     seq_id = db.Column('seq_id', db.ForeignKey('Sequence.id'))
 
+    tasks = db.relationship('Task', backref='Shot', lazy='dynamic')
 
     def __repr__(self):
         return '<Name: %r>' % self.name
+
+class Task(db.Model):
+    __tablename__ = 'Task'
+    id = db.Column('id', db.Integer, primary_key=True)
+    type = db.Column('type', db.Integer, nullable=False)
+    status = db.Column('status', db.Integer)
+    difficulty = db.Column('difficulty', db.Integer)
+
+    shot_id = db.Column('shot_id', db.ForeignKey('Shot.id'))
+    user_id = db.Column('user_id', db.ForeignKey('User.id'))
+
+    versions = db.relationship('Version', backref='Task', lazy='dynamic')
+
+    def __repr__(self):
+        return '<Type: %r>' % self.type
+
+
+class Version(db.Model):
+    __tablename__ = 'Version'
+    id = db.Column('id', db.Integer, primary_key=True)
+    number = db.Column('number', db.Integer, nullable=False)
+    type = db.Column('type', db.Integer, nullable=False)
+    script_path = db.Column('script_path', db.String(100))
+    render_path = db.Column('render_path', db.String(100))
+    review_path = db.Column('review_path', db.String(100))
+    date = db.Column('start_date', db.DateTime())
+
+    task_id = db.Column('task_id', db.ForeignKey('Task.id'))
+
+    comments = db.relationship('Comment', backref='Version', lazy='dynamic')
+
+    def __repr__(self):
+        return '<Version No.: %r>' % self.number
+
+class Comment(db.Model):
+    __tablename__ = 'Comment'
+    id = db.Column('id', db.Integer, primary_key=True)
+    type = db.Column('type', db.Integer, nullable=False)
+    text = db.Column('script_path', db.String(255))
+    date = db.Column('start_date', db.DateTime())
+
+    user_id = db.Column('user_id', db.ForeignKey('User.id'))
+    version_id = db.Column('version_id', db.ForeignKey('Version.id'))
+
+
+    def __repr__(self):
+        return '<Comment Type: %r>' % self.type
+
+# db.create_all()
