@@ -15,6 +15,8 @@ from PySide2.QtGui import (QBrush, QColor, QConicalGradient, QCursor, QFont,
     QPixmap, QRadialGradient)
 from PySide2.QtWidgets import *
 
+from dragdrop import DragAndDrop
+
 
 class Ui_mainWindow(object):
     def setupUi(self, mainWindow):
@@ -78,7 +80,7 @@ class Ui_mainWindow(object):
         self.label_4.setAlignment(Qt.AlignRight|Qt.AlignTrailing|Qt.AlignVCenter)
         self.txt_resolutionW = QLineEdit(self.tab)
         self.txt_resolutionW.setObjectName(u"txt_resolutionW")
-        self.txt_resolutionW.setGeometry(QRect(415, 247, 125, 21))
+        self.txt_resolutionW.setGeometry(QRect(420, 250, 125, 21))
         self.txt_resolutionW.setMinimumSize(QSize(125, 0))
         self.txt_resolutionW.setAlignment(Qt.AlignRight|Qt.AlignTrailing|Qt.AlignVCenter)
         self.label_5 = QLabel(self.tab)
@@ -117,22 +119,24 @@ class Ui_mainWindow(object):
         self.line.setFrameShadow(QFrame.Sunken)
         self.txt_resolutionH = QLineEdit(self.tab)
         self.txt_resolutionH.setObjectName(u"txt_resolutionH")
-        self.txt_resolutionH.setGeometry(QRect(580, 250, 125, 21))
+        self.txt_resolutionH.setGeometry(QRect(550, 250, 125, 21))
         self.txt_resolutionH.setAlignment(Qt.AlignRight|Qt.AlignTrailing|Qt.AlignVCenter)
 
-        # self.drop_poster = QLabel(self.tab)
-        # self.drop_poster.setObjectName(u"drop_poster")
-        # self.drop_poster.setGeometry(QRect(420, 170, 111, 71))
-        # self.drop_poster.setFrameShape(QFrame.Box)
+        self.drop_poster = DragAndDrop(self.tab)
+        self.drop_poster.setObjectName(u"drop_poster")
+        self.drop_poster.setGeometry(QRect(410, 160, 271, 81))
+        self.drop_poster.setAcceptDrops(False)
+        self.drop_poster.setStyleSheet(u"border: 2px dashed #aaa;\n"
+"margin: 6px")
+        self.drop_poster.setFrameShape(QFrame.Box)
 
-
-        self.widget = QWidget(self.tab)
-        self.widget.setObjectName(u"widget")
-        self.widget.setGeometry(QRect(0, 550, 1041, 41))
-        self.horizontalLayout_2 = QHBoxLayout(self.widget)
+        self.layoutWidget = QWidget(self.tab)
+        self.layoutWidget.setObjectName(u"layoutWidget")
+        self.layoutWidget.setGeometry(QRect(0, 550, 1041, 41))
+        self.horizontalLayout_2 = QHBoxLayout(self.layoutWidget)
         self.horizontalLayout_2.setObjectName(u"horizontalLayout_2")
         self.horizontalLayout_2.setContentsMargins(50, 0, 50, 0)
-        self.chbx_sequences = QCheckBox(self.widget)
+        self.chbx_sequences = QCheckBox(self.layoutWidget)
         self.chbx_sequences.setObjectName(u"chbx_sequences")
         font4 = QFont()
         font4.setPointSize(15)
@@ -140,7 +144,7 @@ class Ui_mainWindow(object):
 
         self.horizontalLayout_2.addWidget(self.chbx_sequences)
 
-        self.chbx_episodes = QCheckBox(self.widget)
+        self.chbx_episodes = QCheckBox(self.layoutWidget)
         self.chbx_episodes.setObjectName(u"chbx_episodes")
         font5 = QFont()
         font5.setPointSize(15)
@@ -150,23 +154,23 @@ class Ui_mainWindow(object):
 
         self.horizontalLayout_2.addWidget(self.chbx_episodes)
 
-        self.chbx_folderStructure = QCheckBox(self.widget)
+        self.chbx_folderStructure = QCheckBox(self.layoutWidget)
         self.chbx_folderStructure.setObjectName(u"chbx_folderStructure")
         self.chbx_folderStructure.setFont(font4)
         self.chbx_folderStructure.setChecked(True)
 
         self.horizontalLayout_2.addWidget(self.chbx_folderStructure)
 
-        self.widget1 = QWidget(self.tab)
-        self.widget1.setObjectName(u"widget1")
-        self.widget1.setGeometry(QRect(570, 620, 431, 81))
-        self.horizontalLayout_3 = QHBoxLayout(self.widget1)
+        self.layoutWidget1 = QWidget(self.tab)
+        self.layoutWidget1.setObjectName(u"layoutWidget1")
+        self.layoutWidget1.setGeometry(QRect(570, 620, 431, 81))
+        self.horizontalLayout_3 = QHBoxLayout(self.layoutWidget1)
 #ifndef Q_OS_MAC
         self.horizontalLayout_3.setSpacing(-1)
 #endif
         self.horizontalLayout_3.setObjectName(u"horizontalLayout_3")
         self.horizontalLayout_3.setContentsMargins(0, 0, 0, 0)
-        self.btn_cancel = QPushButton(self.widget1)
+        self.btn_cancel = QPushButton(self.layoutWidget1)
         self.btn_cancel.setObjectName(u"btn_cancel")
         sizePolicy2 = QSizePolicy(QSizePolicy.Minimum, QSizePolicy.Preferred)
         sizePolicy2.setHorizontalStretch(0)
@@ -176,7 +180,7 @@ class Ui_mainWindow(object):
 
         self.horizontalLayout_3.addWidget(self.btn_cancel)
 
-        self.btn_createShow = QPushButton(self.widget1)
+        self.btn_createShow = QPushButton(self.layoutWidget1)
         self.btn_createShow.setObjectName(u"btn_createShow")
         sizePolicy2.setHeightForWidth(self.btn_createShow.sizePolicy().hasHeightForWidth())
         self.btn_createShow.setSizePolicy(sizePolicy2)
@@ -191,6 +195,10 @@ class Ui_mainWindow(object):
         self.txt_colorspace.setObjectName(u"txt_colorspace")
         self.txt_colorspace.setGeometry(QRect(415, 311, 125, 21))
         self.txt_colorspace.setAlignment(Qt.AlignRight|Qt.AlignTrailing|Qt.AlignVCenter)
+        self.btn_createTables = QPushButton(self.tab)
+        self.btn_createTables.setObjectName(u"btn_createTables")
+        self.btn_createTables.setGeometry(QRect(30, 620, 131, 91))
+        self.btn_createTables.setStyleSheet(u"background-color: rgb(252, 80, 7);")
         self.tabWidget.addTab(self.tab, "")
         self.tab_2 = QWidget()
         self.tab_2.setObjectName(u"tab_2")
@@ -341,19 +349,19 @@ class Ui_mainWindow(object):
 
         self.horizontalLayout_6.addWidget(self.btn_shotCreate)
 
-        self.widget2 = QWidget(self.tab_2)
-        self.widget2.setObjectName(u"widget2")
-        self.widget2.setGeometry(QRect(20, 10, 961, 54))
-        self.horizontalLayout_4 = QHBoxLayout(self.widget2)
+        self.layoutWidget2 = QWidget(self.tab_2)
+        self.layoutWidget2.setObjectName(u"layoutWidget2")
+        self.layoutWidget2.setGeometry(QRect(20, 10, 961, 54))
+        self.horizontalLayout_4 = QHBoxLayout(self.layoutWidget2)
         self.horizontalLayout_4.setObjectName(u"horizontalLayout_4")
         self.horizontalLayout_4.setContentsMargins(0, 0, 0, 0)
-        self.label_8 = QLabel(self.widget2)
+        self.label_8 = QLabel(self.layoutWidget2)
         self.label_8.setObjectName(u"label_8")
         self.label_8.setFont(font3)
 
         self.horizontalLayout_4.addWidget(self.label_8)
 
-        self.lst_projChooser = QComboBox(self.widget2)
+        self.lst_projChooser = QComboBox(self.layoutWidget2)
         self.lst_projChooser.setObjectName(u"lst_projChooser")
 
         self.horizontalLayout_4.addWidget(self.lst_projChooser)
@@ -388,7 +396,6 @@ class Ui_mainWindow(object):
         QWidget.setTabOrder(self.btn_shotCreate, self.btn_shotCancel)
         QWidget.setTabOrder(self.btn_shotCancel, self.lst_projChooser)
         QWidget.setTabOrder(self.lst_projChooser, self.txt_shotName)
-        QWidget.setTabOrder(self.txt_shotName, self.tabWidget)
 
         self.retranslateUi(mainWindow)
 
@@ -410,13 +417,14 @@ class Ui_mainWindow(object):
         self.label_5.setText(QCoreApplication.translate("mainWindow", u"FPS :", None))
         self.label_6.setText(QCoreApplication.translate("mainWindow", u"START DATE :", None))
         self.label_7.setText(QCoreApplication.translate("mainWindow", u"CREATE NEW SHOW", None))
-        # self.drop_poster.setText(QCoreApplication.translate("mainWindow", u"drop your image here", None))
+        self.drop_poster.setText(QCoreApplication.translate("mainWindow", u"drop your image here", None))
         self.chbx_sequences.setText(QCoreApplication.translate("mainWindow", u"SPLIT FOR SEQUENCES", None))
         self.chbx_episodes.setText(QCoreApplication.translate("mainWindow", u"SPLIT FOR EPISODES", None))
         self.chbx_folderStructure.setText(QCoreApplication.translate("mainWindow", u"CREATE FOLDER STRUCTURE", None))
         self.btn_cancel.setText(QCoreApplication.translate("mainWindow", u"CANCEL", None))
         self.btn_createShow.setText(QCoreApplication.translate("mainWindow", u"CREATE SHOW", None))
         self.label_20.setText(QCoreApplication.translate("mainWindow", u"COLORSPACE :", None))
+        self.btn_createTables.setText(QCoreApplication.translate("mainWindow", u"CREATE TABLES", None))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab), QCoreApplication.translate("mainWindow", u"NEW SHOW", None))
         self.label_9.setText(QCoreApplication.translate("mainWindow", u"SHOT NAME :", None))
         self.label_10.setText(QCoreApplication.translate("mainWindow", u"SHOT THUMBNAIL :", None))

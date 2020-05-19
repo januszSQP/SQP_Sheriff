@@ -75,6 +75,7 @@ class Shot(db.Model):
     show_id = db.Column('show_id', db.ForeignKey('Show.id'))
     seq_id = db.Column('seq_id', db.ForeignKey('Sequence.id'))
 
+
     tasks = db.relationship('Task', backref='Shot', lazy='dynamic')
 
     def __repr__(self):
@@ -105,6 +106,7 @@ class Version(db.Model):
     render_path = db.Column('render_path', db.String(100))
     review_path = db.Column('review_path', db.String(100))
     date = db.Column('start_date', db.DateTime())
+    thumbnail = db.Column('thumbnail', db.String(100))
 
     task_id = db.Column('task_id', db.ForeignKey('Task.id'))
 
@@ -127,4 +129,12 @@ class Comment(db.Model):
     def __repr__(self):
         return '<Comment Type: %r>' % self.type
 
-# db.create_all()
+
+class Element(db.Model):
+    __tablename__ = 'Element'
+    id = db.Column('id', db.Integer, primary_key=True)
+    name = db.Column('name', db.String(25), nullable=False)
+    path = db.Column('path', db.String(60))
+    type = db.Column('type', db.Integer)
+
+
