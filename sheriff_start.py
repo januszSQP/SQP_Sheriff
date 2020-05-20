@@ -4,22 +4,28 @@ from flask_sqlalchemy import SQLAlchemy
 from datetime import date
 import sqlalchemy
 import mysql.connector
+from PIL import Image
+
+'''
+    Modules for Clickup connections
+'''
+import urllib.request
+import certifi
+import ssl
+import json
+from pathlib import Path
+import yaml
+import pickle
 
 import qdarkgraystyle
 
 from PySide2.QtGui import *
 from PySide2.QtWidgets import *
 from PySide2.QtCore import *
-from ui_mainWindow import Ui_mainWindow
+
 import base
-
-from dragdrop import DragAndDrop
-
 from ui_launcher import Ui_SheriffLauncher
 from ui_new_show import Ui_DlgNewShow
-
-
-
 
 
 '''
@@ -31,34 +37,168 @@ class WindowShow(QDialog, Ui_DlgNewShow):
     def __init__(self):
 
         super(WindowShow, self).__init__()
+        # self.setAcceptDrops(True)
         self.setupUi(self)
 
         self.btn_cancel.clicked.connect(self.close)
-        self.btn_create_show(self.createNewShow)
-        self.btn_create_tables(self.createTables)
+        self.btn_create_show.clicked.connect(self.createNewShow)
+        self.btn_create_tables.clicked.connect(self.createTables)
+
+
+        self.poster_path = ''
+
+    def jobsDir(self):
+        Win_Dir = 'J:/'
+        Mac_Dir = '/Volumes/mutha/jobs'
+        Linux_Dir = '/mnt/jobs'
+        # Automatically set global directory
+        if platform.system() == "Windows":
+            dir = Win_Dir
+        elif platform.system() == "Darwin":
+            dir = Mac_Dir
+        elif platform.system() == "Linux":
+            dir = Linux_Dir
+        else:
+            dir = None
+        return dir
+
+    def walk(self, folderDict, path):
+        paths = []
+        # we only continue if the value is not None
+        if folderDict:
+            for folder, subDict in folderDict.items():
+                # making sure the path will have forward slashes
+                # especially necessary on windows
+                pathTemp = os.path.normpath(os.path.join(path, folder))
+                pathTemp = pathTemp.replace("\\", "/")
+                # add the current found path to the list
+                paths.append(pathTemp)
+                # we call the the function again to go deeper
+                # in the dictionary
+                paths.extend(self.walk(subDict, pathTemp))
+        return paths
+
+    def constructFoldersFromYMLTemplate(self, show, YMLFoldersTemplate):
+        # opening the previously saved json file
+        # this is to simulate opening a real config file
+        folders = {}
+        with open(YMLFoldersTemplate, 'r') as f:
+            folders = yaml.load(f, Loader=yaml.FullLoader)
+        rootPath = self.jobsDir() + '/' + show
+        folderPaths = self.walk(folders, rootPath)
+        return folderPaths
+
+    def createFolders(self, list):
+        for folder in list:
+            os.makedirs(folder)
 
     def createNewShow(self):
-        print('Create New Show')
-        show_title = self.txt_title.text().upper()
-        show_short = self.txt_short.text().upper()
-        # show_poster = self.txt_poster.text()
-        show_resolution = self.txt_resolutionW.text() + 'x' + self.txt_resolutionH.text()
-        show_fps = self.txt_fps.text()
-        show_colorspace = self.txt_colorspace.text()
-        show_startdate = self.cal_startDate.selectedDate().toString(Qt.DefaultLocaleShortDate).split('/')
 
+        ### Fill th colorspace listbox
+        show_title = self.edt_title.text().upper()
+        show_title = show_title.replace(' ', '_')
+        show_short = self.edt_short.text().upper()
+        orig_poster = self.lbl_drop_here.returnImagePath()
+
+        show_resolution = self.edt_resw.text() + 'x' + self.edt_resh.text()
+        show_fps = self.edt_fps.text()
+        show_colorspace = 'ACES'
+        show_startdate = self.cal_startdate.selectedDate().toString(Qt.DefaultLocaleShortDate).split('/')
+
+        ### Create folders
+        if self.chk_create_folders.isChecked():
+            path_to_config = Path(__file__).parent / "main_folders.yml"
+            folders = self.constructFoldersFromYMLTemplate(show_title, path_to_config)
+            self.createFolders(folders)
+
+        ### Create Clickup Session
+        if self.chk_clickup_space.isChecked():
+            print('Connecting to Clickup')
+            path_config = Path(__file__).parent / "clickup_api.json"
+            path_clickup_space_template = Path(__file__).parent / "clickup_space_template.pckl"
+            path_clickup_shots_list_template = Path(__file__).parent / "clickup_shots_list_template.pckl"
+
+            with open(path_config, 'r') as f:
+                clickup_api = json.load(f)
+
+
+            headers = {
+                'Authorization': clickup_api.get('API_KEY'),
+                'Content-Type': 'application/json'
+            }
+
+            '''
+            Based on SHOW:title field change the template reading frm .pickle file
+            to update xxxxx (stored there) to the proper title.
+            Update the url to point to the Workspace.
+            Encode the multistring variable stored in .pickle to byte-string format (utf-8),
+            required by Clickup API and POST to create the Space (=Show).
+            Get the space_id to be written to database and for creating "folderless"
+            list in Clickup.
+            Read the multistring variable from .pickle file (for list).
+            Encode to utf-8.
+            POST to create folderless list SHOTS (same will be for ASSETS -> replace SHOTS for ASSETS in variable?).
+            Get the list_id to store in database.s
+            '''
+            f = open(path_clickup_space_template, 'rb')
+            clickup_space = pickle.load(f)
+            f.close()
+            clickup_space = clickup_space.replace('xxxxx', show_title)
+            url = 'https://api.clickup.com/api/v2/team/{}/space'.format(clickup_api.get('JOBS_ID'))
+            clickup_space = clickup_space.encode('utf-8')
+            request = urllib.request.Request(url, data=clickup_space, headers=headers)
+            response_body = urllib.request.urlopen(request, context=ssl.create_default_context(cafile=certifi.where())).read()
+            response_dict = json.loads(response_body)
+
+            space_id = response_dict.get('id')
+
+            f = open(path_clickup_shots_list_template, 'rb')
+            clickup_shots_list = pickle.load(f)
+            f.close()
+            url = 'https://api.clickup.com/api/v2/space/{}/list'.format(space_id)
+
+            clickup_shots_list = clickup_shots_list.encode('utf-8')
+            request = urllib.request.Request(url, data=clickup_shots_list, headers=headers)
+            response_body = urllib.request.urlopen(request, context=ssl.create_default_context(cafile=certifi.where())).read()
+            response_dict = json.loads(response_body)
+
+            list_id = response_dict.get('id')
+        else:
+            space_id = ''
+            list_id = ''
+        ### Create SyncSketch project
+
+        ### Save poster image to <SHOW>/_elements/thumbnails with a name poster.png (convert to .png if needed
+
+        show_poster = self.jobsDir() + '/' + show_title + '/_elements/thumbnails/poster.png'
+        img = Image.open(orig_poster)
+        size_256 = (256, 256)
+        img.thumbnail(size_256)
+        img.save(show_poster)
+
+        ### Update database
         new_show = base.Show(title=show_title, short=show_short, poster=show_poster, resolution=show_resolution,
                              fps=show_fps, colorspace=show_colorspace,
                              start_date=date(int(show_startdate[2]), int(show_startdate[1]), int(show_startdate[0])),
-                             clickup_space_id='2597557')
+                             clickup_space_id=str(space_id), clickup_shot_list_id=str(list_id), clickup_asset_list_id ='')
         #
         base.db.session.add(new_show)
         base.db.session.commit()
 
-        # print(new_show.title, '   ', new_show.start_date, '   ', len(show_poster))
+        self.close()
 
+
+
+
+
+    '''
+    Temporary function for creating Tables for database.
+    ---------------------------------------------------
+    Development mode.
+    '''
     def createTables(self):
         base.db.create_all()
+
 
 class MainWindow(QWidget, Ui_SheriffLauncher):
     def __init__(self):
@@ -92,6 +232,7 @@ class MainWindow(QWidget, Ui_SheriffLauncher):
         # self.lst_shotsList.currentItemChanged.connect(self.getShotPath)
         # self.btn_Temp.clicked.connect(self.createClickupSpace)
         # self.cal_startDate.clicked[QDate].connect(self.getDate)
+        self.btn_exit.clicked.connect(QApplication.quit)
         self.btn_new_show.clicked.connect(self.new_show)
         # self.btn_createShow.clicked.connect(self.createNewShow)
         # self.btn_createTables.clicked.connect(self.createTables)
@@ -100,49 +241,10 @@ class MainWindow(QWidget, Ui_SheriffLauncher):
     def new_show(self):
         self.dlg = WindowShow()
         self.dlg.exec_()
-    # def dragEnterEvent(self, event):
-    #     if event.mimeData().hasImage:
-    #         event.accept()
-    #     else:
-    #         event.ignore()
-    #
-    # def dragMoveEvent(self, event):
-    #     if event.mimeData().hasImage:
-    #         event.accept()
-    #     else:
-    #         event.ignore()
-    #
-    # def dragLeaveEvent(self, event):
-    #     if event.mimeData().hasImage():
-    #         event.setDropAction(Qt.CopyAction)
-    #         file_path = event.mimeData().urls()[0].toLocalFile()
-    #         self.setImage(file_path)
-    #         event.accept()
-    #     else:
-    #         event.ignore()
-    #
-    # def setPixmap(self, image):
-    #     super().setPixmap(image)
-
-    def setImage(self, file_path):
-        print(file_path)
-        # image = QPixmap(file_path).scaledToHeight(180, Qt.SmoothTransformation)
-        # self.drop_poster.setPixmap(image)
-
-    def MakeDatabaseConnection(self):
-        app = Flask(__name__)
-        app.config.from_pyfile('config.cfg')
-
-    # def getDate(self):
-    #     self.date = self.cal_startDate.selectedDate().toString(Qt.DefaultLocaleShortDate)
-    #     return self.date
 
 
-    '''
-    Temporary function for creating Tables for database.
-    ---------------------------------------------------
-    Development mode.
-    '''
+
+
 
 
 
