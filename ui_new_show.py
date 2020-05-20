@@ -88,7 +88,9 @@ class Ui_DlgNewShow(object):
 
         self.formLayout.setWidget(2, QFormLayout.LabelRole, self.label_3)
 
-        self.lbl_drop_here = DragAndDrop(self.layoutWidget)
+
+        ###  DRAG AND DROP
+        self.lbl_drop_here = DragAndDrop()
         self.lbl_drop_here.setObjectName(u"lbl_drop_here")
         sizePolicy3 = QSizePolicy(QSizePolicy.Maximum, QSizePolicy.Maximum)
         sizePolicy3.setHorizontalStretch(0)
@@ -96,9 +98,11 @@ class Ui_DlgNewShow(object):
         sizePolicy3.setHeightForWidth(self.lbl_drop_here.sizePolicy().hasHeightForWidth())
         self.lbl_drop_here.setSizePolicy(sizePolicy3)
         self.lbl_drop_here.setMinimumSize(QSize(300, 140))
-        self.lbl_drop_here.setStyleSheet(u"margin: 4px;\n"
-"border: 2px dashed #aaa")
-        self.lbl_drop_here.setAlignment(Qt.AlignCenter)
+        self.lbl_drop_here.setAcceptDrops(True)
+        # self.lbl_drop_here.setStyleSheet(u"color: rgb(218, 16, 5);")
+        # self.lbl_drop_here.setFrameShape(QFrame.Box)
+        # self.lbl_drop_here.setLineWidth(8)
+        # self.lbl_drop_here.setAlignment(Qt.AlignCenter)
 
         self.formLayout.setWidget(2, QFormLayout.FieldRole, self.lbl_drop_here)
 
