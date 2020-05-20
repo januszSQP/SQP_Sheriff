@@ -157,9 +157,17 @@
         <height>140</height>
        </size>
       </property>
+      <property name="acceptDrops">
+       <bool>true</bool>
+      </property>
       <property name="styleSheet">
-       <string notr="true">margin: 4px;
-border: 2px dashed #aaa</string>
+       <string notr="true">color: rgb(218, 16, 5);</string>
+      </property>
+      <property name="frameShape">
+       <enum>QFrame::Box</enum>
+      </property>
+      <property name="lineWidth">
+       <number>8</number>
       </property>
       <property name="text">
        <string>drop the poster image here</string>
