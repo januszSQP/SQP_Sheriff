@@ -15,8 +15,8 @@ db = SQLAlchemy(app)
 class User(db.Model):
     __tablename__ = 'User'
     id = db.Column('id', db.Integer, primary_key=True)
-    username = db.Column('username', db.String(25), unique=True, nullable=False)
-    icon = db.Column('icon', db.String(60))
+    username = db.Column('username', db.String(30), unique=True, nullable=False)
+    icon = db.Column('icon', db.String(255))
     permissions = db.Column('permissions', db.Integer)
 
     tasks = db.relationship('Task', backref='User', lazy='dynamic')
@@ -28,15 +28,16 @@ class User(db.Model):
 class Show(db.Model):
     __tablename__ = 'Show'
     id = db.Column('id', db.Integer, primary_key=True)
-    title = db.Column('title', db.String(25),unique=True, nullable=False)
+    title = db.Column('title', db.String(30),unique=True, nullable=False)
     short = db.Column('short', db.String(8), unique=True, nullable=False)
-    poster = db.Column('poster', db.String(60), unique=True)
+    poster = db.Column('poster', db.String(255), unique=True)
     resolution = db.Column('resolution', db.String(10))
     fps = db.Column('fps', db.String(5))
-    colorspace = db.Column('colorspace', db.String(20))
+    colorspace = db.Column('colorspace', db.String(30))
     start_date = db.Column('start_date', db.DateTime())
     clickup_space_id = db.Column('clickup_space_id', db.String(16), unique=True)
-    clickup_assets_list_id = db.Column('clickup_assets_list_id', db.String(16), unique=True)
+    clickup_shot_list_id = db.Column('clickup_shot_list_id', db.String(16))
+    clickup_asset_list_id = db.Column('clickup_asset_list_id', db.String(16), unique=True)
 
     shots = db.relationship('Shot', backref='Show', lazy='dynamic')
 
@@ -47,7 +48,7 @@ class Show(db.Model):
 class Sequence(db.Model):
     __tablename__ = 'Sequence'
     id = db.Column('id', db.Integer, primary_key=True)
-    name = db.Column('name', db.String(25))
+    name = db.Column('name', db.String(50))
     shots = db.relationship('Shot', backref='Sequence', lazy='dynamic')
 
     def __repr__(self):
@@ -57,20 +58,20 @@ class Sequence(db.Model):
 class Shot(db.Model):
     __tablename__ = 'Shot'
     id = db.Column('id', db.Integer, primary_key=True)
-    name = db.Column('name', db.String(25), nullable=False)
-    thumbnail = db.Column('thumbnail', db.String(60))
+    name = db.Column('name', db.String(50), nullable=False)
+    thumbnail = db.Column('thumbnail', db.String(255))
     resolution = db.Column('resolution', db.String(10))
     fps = db.Column('fps', db.String(5))
     start_frame = db.Column('start_frame', db.String(5))
     end_frame = db.Column('end_frame', db.String(5))
-    colorspace = db.Column('colorspace', db.String(20))
-    lut = db.Column('lut', db.String(60))
-    camera = db.Column('camera', db.String(60))
-    lens_dist = db.Column('lens_dist', db.String(60))
+    colorspace = db.Column('colorspace', db.String(30))
+    lut = db.Column('lut', db.String(255))
+    camera = db.Column('camera', db.String(255))
+    lens_dist = db.Column('lens_dist', db.String(255))
     start_date = db.Column('start_date', db.DateTime())
 
     clickup_task_id = db.Column('clickup_task_id', db.String(16), unique=True)
-    clickup_list_id = db.Column('clickup_list_id', db.String(16))
+
 
     show_id = db.Column('show_id', db.ForeignKey('Show.id'))
     seq_id = db.Column('seq_id', db.ForeignKey('Sequence.id'))
@@ -102,11 +103,11 @@ class Version(db.Model):
     id = db.Column('id', db.Integer, primary_key=True)
     number = db.Column('number', db.Integer, nullable=False)
     type = db.Column('type', db.Integer, nullable=False)
-    script_path = db.Column('script_path', db.String(100))
-    render_path = db.Column('render_path', db.String(100))
-    review_path = db.Column('review_path', db.String(100))
+    script_path = db.Column('script_path', db.String(255))
+    render_path = db.Column('render_path', db.String(255))
+    review_path = db.Column('review_path', db.String(255))
     date = db.Column('start_date', db.DateTime())
-    thumbnail = db.Column('thumbnail', db.String(100))
+    thumbnail = db.Column('thumbnail', db.String(255))
 
     task_id = db.Column('task_id', db.ForeignKey('Task.id'))
 
@@ -125,7 +126,6 @@ class Comment(db.Model):
     user_id = db.Column('user_id', db.ForeignKey('User.id'))
     version_id = db.Column('version_id', db.ForeignKey('Version.id'))
 
-
     def __repr__(self):
         return '<Comment Type: %r>' % self.type
 
@@ -133,8 +133,10 @@ class Comment(db.Model):
 class Element(db.Model):
     __tablename__ = 'Element'
     id = db.Column('id', db.Integer, primary_key=True)
-    name = db.Column('name', db.String(25), nullable=False)
-    path = db.Column('path', db.String(60))
+    name = db.Column('name', db.String(50), nullable=False)
+    description = db.Column('description', db.String(255))
+    path = db.Column('path', db.String(255))
     type = db.Column('type', db.Integer)
 
-
+    def __repr__(self):
+        return '<Element name: %r>' % self.name
